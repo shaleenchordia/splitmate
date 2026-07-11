@@ -3,8 +3,8 @@
 A shared-expenses app built for the Spreetail internship assignment: four flatmates,
 one messy spreadsheet, and an importer that refuses to guess silently.
 
-**Live app:** _(deployment URL here)_
-**Stack:** Django 5 + Django REST Framework + PostgreSQL (SQLite in dev) · React 18 + Vite
+**Live app:** https://splitmate-chi-gray.vercel.app
+**Stack:** Django 5 + Django REST Framework + PostgreSQL (Supabase; SQLite in dev) · React 18 + Vite · deployed on Vercel
 
 ## What it does
 
