@@ -147,12 +147,14 @@ def resolve_anomaly(request, group_id, batch_id, anomaly_id):
     if action == "approve":
         anomaly.resolved_action = anomaly.proposed_action
     else:
-        if not isinstance(request.data, dict) or action not in ALLOWED_ACTIONS:
+        if action not in ALLOWED_ACTIONS:
             return Response(
                 {"detail": f"action must be 'approve' or one of {sorted(ALLOWED_ACTIONS)}"},
                 status=400,
             )
-        anomaly.resolved_action = dict(request.data)
+        # request.data may be a QueryDict (form posts), whose dict() form
+        # wraps every value in a list — flatten via items().
+        anomaly.resolved_action = {k: v for k, v in request.data.items()}
     anomaly.save()
     return Response(row_detail(anomaly.row))
 
