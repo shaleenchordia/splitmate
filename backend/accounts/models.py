@@ -1,3 +1,6 @@
-from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-# Create your models here.
+
+class User(AbstractUser):
+    """App login account. Group members may exist without an account
+    (e.g. a guest on a trip); a User can claim a member by name."""
