@@ -66,9 +66,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
+        # Serverless deployments set 0 (no reuse across invocations).
+        conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", "600")),
     )
 }
+if DATABASES["default"]["ENGINE"].endswith("postgresql"):
+    # Required when connecting through a pooler (Supabase/pgbouncer).
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 
 AUTH_USER_MODEL = "accounts.User"
 

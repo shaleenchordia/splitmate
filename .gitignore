@@ -2,7 +2,6 @@ __pycache__/
 *.pyc
 .venv/
 db.sqlite3
-backend/staticfiles/
 node_modules/
 frontend/dist/
 .env
