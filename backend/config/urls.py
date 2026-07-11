@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
@@ -38,4 +38,10 @@ urlpatterns = [
     ),
     path("api/groups/<int:group_id>/imports/<int:batch_id>/commit/", import_views.commit),
     path("api/groups/<int:group_id>/imports/<int:batch_id>/report/", import_views.report),
+    # SPA fallback: client-side routes (e.g. /groups/3) get index.html;
+    # whitenoise serves the hashed asset files at the root.
+    re_path(
+        r"^(?!api/|admin/|assets/|static/).*$",
+        TemplateView.as_view(template_name="index.html"),
+    ),
 ]

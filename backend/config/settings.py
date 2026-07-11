@@ -102,7 +102,11 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
+# The React build lands in staticfiles/ (see frontend/vite.config.js);
+# serve it at the site root, with index.html for "/".
+WHITENOISE_ROOT = STATIC_ROOT
 WHITENOISE_INDEX_FILE = True
+WHITENOISE_USE_FINDERS = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
