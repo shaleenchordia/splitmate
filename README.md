@@ -85,19 +85,18 @@ backend/
 frontend/             React SPA (Vite)
 data/                 the assignment export, untouched (xlsx + faithful csv)
 scripts/convert_annex.py     machine conversion xlsx -> csv (no hand edits)
-docs/                 SCOPE.md, DECISIONS.md, AI_USAGE.md
 ```
 
 ## Key documents
 
-- [docs/SCOPE.md](docs/SCOPE.md) — every data problem found in the CSV, how each is
+- [SCOPE.md](SCOPE.md) — every data problem found in the CSV, how each is
   handled, and the database schema.
-- [docs/DECISIONS.md](docs/DECISIONS.md) — the decision log: options considered and why.
-- [docs/AI_USAGE.md](docs/AI_USAGE.md) — AI tools used, key prompts, and concrete cases
+- [DECISIONS.md](DECISIONS.md) — the decision log: options considered and why.
+- [AI_USAGE.md](AI_USAGE.md) — AI tools used, key prompts, and concrete cases
   where the AI was wrong and how it was caught.
 
 ## AI used
 
 Built with **Claude Code (Claude, Anthropic)** as the primary development collaborator,
 directed and reviewed line-by-line by me. Details, prompts, and the AI's mistakes are
-in [docs/AI_USAGE.md](docs/AI_USAGE.md).
+in [AI_USAGE.md](AI_USAGE.md).
