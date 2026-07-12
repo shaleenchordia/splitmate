@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, fmtMoney } from '../api.js'
+import { Alert, ArrowLeft, Bot, Check } from './icons.jsx'
 import ImportReport from './ImportReport.jsx'
 
 // Review a staged batch: every anomaly must get a human decision before
 // commit. Approve the proposal, or override it with one of the allowed
-// alternatives.
+// alternatives. The AI copilot can brief the batch and flag which items
+// genuinely need human judgement — it never decides anything itself.
 
 export default function ImportReview({ group, batchId, onBack, onCommitted }) {
   const [batch, setBatch] = useState(null)
@@ -12,6 +14,8 @@ export default function ImportReview({ group, batchId, onBack, onCommitted }) {
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
   const [showReport, setShowReport] = useState(false)
+  const [aiReview, setAiReview] = useState(null) // {source, briefing, recommendations}
+  const [aiBusy, setAiBusy] = useState(false)
 
   const load = useCallback(
     () =>
@@ -74,12 +78,47 @@ export default function ImportReview({ group, batchId, onBack, onCommitted }) {
 
   const rows = batch.rows.filter((r) => showClean || r.anomalies.length > 0)
 
+  const askAi = async () => {
+    setAiBusy(true)
+    setError(null)
+    try {
+      setAiReview(
+        await api(`/groups/${group.id}/imports/${batchId}/ai-review/`, { method: 'POST' }),
+      )
+    } catch (err) {
+      setError(err.body?.detail || err.message)
+    } finally {
+      setAiBusy(false)
+    }
+  }
+  const recFor = (anomalyId) =>
+    aiReview?.recommendations?.find((r) => r.anomaly_id === anomalyId)
+
   return (
     <>
       <div className="row" style={{ marginBottom: 12 }}>
-        <button onClick={onBack}>← Imports</button>
+        <button className="ghost" onClick={onBack}>
+          <ArrowLeft size={15} /> Imports
+        </button>
         <h2 style={{ margin: 0 }}>Review: {batch.file_name}</h2>
+        <span className="spacer" style={{ flex: 1 }} />
+        {staged && (
+          <button className="ai" disabled={aiBusy} onClick={askAi}>
+            <Bot size={15} /> {aiBusy ? 'Reading the batch…' : aiReview ? 'Refresh AI briefing' : 'AI briefing'}
+          </button>
+        )}
       </div>
+      {aiReview && (
+        <div className="ai-panel">
+          <h3>
+            <Bot size={16} /> What's in this batch
+            <span className="ai-source" style={{ fontWeight: 400 }}>
+              {aiReview.source === 'gemini' ? '· Gemini' : '· offline summary'}
+            </span>
+          </h3>
+          <p style={{ margin: 0 }}>{aiReview.briefing}</p>
+        </div>
+      )}
       <div className="card row">
         <div style={{ flex: 1 }}>
           <strong>{batch.total_rows}</strong> rows · <strong>{batch.rows_with_anomalies}</strong>{' '}
@@ -129,6 +168,7 @@ export default function ImportReview({ group, batchId, onBack, onCommitted }) {
           row={row}
           group={group}
           staged={staged}
+          recFor={recFor}
           onResolve={(anomalyId, body) => act(`anomalies/${anomalyId}/resolve/`, body)}
         />
       ))}
@@ -136,7 +176,7 @@ export default function ImportReview({ group, batchId, onBack, onCommitted }) {
   )
 }
 
-function RowCard({ row, group, staged, onResolve }) {
+function RowCard({ row, group, staged, recFor, onResolve }) {
   const r = row.raw
   return (
     <div className="card">
@@ -150,7 +190,14 @@ function RowCard({ row, group, staged, onResolve }) {
       </div>
       {r.notes && <div className="muted" style={{ marginTop: 4 }}>note: “{r.notes}”</div>}
       {row.anomalies.map((a) => (
-        <AnomalyCard key={a.id} anomaly={a} group={group} staged={staged} onResolve={onResolve} />
+        <AnomalyCard
+          key={a.id}
+          anomaly={a}
+          group={group}
+          staged={staged}
+          rec={recFor(a.id)}
+          onResolve={onResolve}
+        />
       ))}
     </div>
   )
@@ -179,7 +226,7 @@ function describeAction(action) {
   }
 }
 
-function AnomalyCard({ anomaly, group, staged, onResolve }) {
+function AnomalyCard({ anomaly, group, staged, rec, onResolve }) {
   const [overriding, setOverriding] = useState(false)
   const resolved = anomaly.resolved_action != null
   const overridden =
@@ -197,6 +244,17 @@ function AnomalyCard({ anomaly, group, staged, onResolve }) {
         )}
       </div>
       <p style={{ margin: '6px 0' }}>{anomaly.message}</p>
+      {rec && !resolved && (
+        <div className="ai-suggestion">
+          {rec.verdict === 'approve' ? <Check size={13} /> : <Alert size={13} />}
+          <span>
+            <strong>
+              {rec.verdict === 'approve' ? 'AI: safe to approve.' : 'AI: worth a closer look.'}
+            </strong>{' '}
+            <span className="why">{rec.rationale}</span>
+          </span>
+        </div>
+      )}
       <div className="row">
         <span className="muted">
           {resolved ? 'Decision: ' : 'Proposal: '}

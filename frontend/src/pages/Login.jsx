@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api, setToken } from '../api.js'
+import { Wallet } from '../components/icons.jsx'
 
 export default function Login({ onAuth }) {
   const [mode, setMode] = useState('login')
@@ -33,9 +34,20 @@ export default function Login({ onAuth }) {
 
   return (
     <div className="auth-wrap">
-      <div className="card">
-        <h2 style={{ color: 'var(--brand)' }}>SplitMate</h2>
-        <p className="muted">Track shared expenses. Import your messy spreadsheet. Approve every fix.</p>
+      <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        <span className="logo" style={{
+          fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em',
+          display: 'inline-flex', alignItems: 'center', gap: 9,
+          background: 'linear-gradient(100deg, var(--brand), var(--brand-2))',
+          WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+        }}>
+          <Wallet size={24} style={{ color: 'var(--brand)' }} /> SplitMate
+        </span>
+        <p className="muted" style={{ marginTop: 6 }}>
+          Track shared expenses. Import your messy spreadsheet. Approve every fix.
+        </p>
+      </div>
+      <div className="card" style={{ boxShadow: 'var(--shadow-md)' }}>
         <form onSubmit={submit}>
           <div className="field">
             <label>Username</label>
@@ -77,6 +89,25 @@ export default function Login({ onAuth }) {
             </button>
           </div>
         </form>
+        {mode === 'login' && (
+          <div className="notice" style={{ marginBottom: 0, marginTop: 14 }}>
+            <strong>Demo account:</strong> <span className="mono">aisha</span> /{' '}
+            <span className="mono">password123</span> — comes with sample groups &
+            data.{' '}
+            <button
+              type="button"
+              className="ghost"
+              style={{ padding: '2px 8px', fontSize: 13 }}
+              disabled={busy}
+              onClick={() => {
+                setMode('login')
+                setForm({ ...form, username: 'aisha', password: 'password123' })
+              }}
+            >
+              Fill it in
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

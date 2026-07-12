@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, fmtMoney } from '../api.js'
+import { Avatar } from './icons.jsx'
 
 export default function BalancesTab({ group }) {
   const [data, setData] = useState(null)
@@ -54,9 +55,11 @@ export default function BalancesTab({ group }) {
             {data.balances.map((b) => (
               <tr key={b.member_id} className="clickable" onClick={() => openLedger(b.member_id)}>
                 <td>
-                  {b.name}
-                  {b.is_guest && <span className="badge neutral"> guest</span>}
-                  {b.left_on && <span className="muted"> (left {b.left_on})</span>}
+                  <span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+                    <Avatar name={b.name} size={26} /> {b.name}
+                    {b.is_guest && <span className="badge neutral">guest</span>}
+                    {b.left_on && <span className="muted">(left {b.left_on})</span>}
+                  </span>
                 </td>
                 <td className="mono" style={{ textAlign: 'right' }}>
                   <span className={b.net_minor > 0 ? 'pos' : b.net_minor < 0 ? 'neg' : ''}>

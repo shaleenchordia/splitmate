@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
 from accounts import views as account_views
+from ai import views as ai_views
 from expenses import views as expense_views
 from imports import views as import_views
 
@@ -38,6 +39,15 @@ urlpatterns = [
     ),
     path("api/groups/<int:group_id>/imports/<int:batch_id>/commit/", import_views.commit),
     path("api/groups/<int:group_id>/imports/<int:batch_id>/report/", import_views.report),
+    # AI assistance: proposals only, the human always confirms.
+    path("api/ai/status/", ai_views.status),
+    path("api/groups/<int:group_id>/ai/parse-expense/", ai_views.parse_expense),
+    path("api/groups/<int:group_id>/ai/scan-receipt/", ai_views.scan_receipt),
+    path("api/groups/<int:group_id>/ai/insights/", ai_views.insights),
+    path(
+        "api/groups/<int:group_id>/imports/<int:batch_id>/ai-review/",
+        ai_views.import_review,
+    ),
     # SPA fallback: client-side routes (e.g. /groups/3) get index.html;
     # whitenoise serves the hashed asset files at the root.
     re_path(

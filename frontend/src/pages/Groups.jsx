@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api.js'
+import { ArrowRight, Avatar, Plus, Users } from '../components/icons.jsx'
 
 export default function Groups() {
   const [groups, setGroups] = useState(null)
@@ -23,6 +24,9 @@ export default function Groups() {
   return (
     <div className="page">
       <h1>Your groups</h1>
+      <p className="muted" style={{ marginTop: -6 }}>
+        Every flat, trip or team gets its own ledger.
+      </p>
       {error && <div className="error-box">{error}</div>}
       <div className="card">
         <form className="row" onSubmit={create}>
@@ -33,22 +37,32 @@ export default function Groups() {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-          <button className="primary" type="submit">Create group</button>
+          <button className="primary" type="submit">
+            <Plus size={15} /> Create group
+          </button>
         </form>
       </div>
       {groups?.length === 0 && (
-        <p className="muted">No groups yet — create one to get started.</p>
+        <div className="card empty">
+          <div className="glyph">🏠</div>
+          No groups yet — create one above to get started.
+        </div>
       )}
       {groups?.map((g) => (
-        <Link key={g.id} to={`/groups/${g.id}`}>
-          <div className="card row">
+        <Link key={g.id} to={`/groups/${g.id}`} style={{ color: 'inherit' }}>
+          <div className="card row hoverable">
             <div style={{ flex: 1 }}>
-              <h3>{g.name}</h3>
-              <span className="muted">
-                {g.members.length} members · base currency {g.base_currency}
+              <h3 style={{ marginBottom: 4 }}>{g.name}</h3>
+              <span className="row" style={{ gap: 4 }}>
+                {g.members.slice(0, 6).map((m) => (
+                  <Avatar key={m.id} name={m.name} size={24} />
+                ))}
+                <span className="muted" style={{ marginLeft: 6 }}>
+                  <Users size={12} /> {g.members.length} members · {g.base_currency}
+                </span>
               </span>
             </div>
-            <span>→</span>
+            <ArrowRight size={17} style={{ color: 'var(--muted)' }} />
           </div>
         </Link>
       ))}

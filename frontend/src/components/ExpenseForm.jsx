@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { api } from '../api.js'
+import { Sparkle } from './icons.jsx'
 
 // Create or edit an expense with any of the four split types. Amounts are
 // entered in major units and converted to minor units at the API edge.
+// `proposal` (optional) is an AI Smart-Add result used to prefill a new
+// expense — the human reviews it here before anything is saved.
 
-export default function ExpenseForm({ group, expense, onClose, onSaved }) {
+export default function ExpenseForm({ group, expense, proposal, onClose, onSaved }) {
   const members = group.members
+  const ai = proposal?.expense
   const [form, setForm] = useState(() =>
     expense
       ? {
@@ -20,15 +24,15 @@ export default function ExpenseForm({ group, expense, onClose, onSaved }) {
           notes: expense.notes || '',
         }
       : {
-          description: '',
-          date: new Date().toISOString().slice(0, 10),
-          paid_by: members[0]?.id,
-          currency: group.base_currency,
-          amount: '',
+          description: ai?.description || '',
+          date: ai?.date || new Date().toISOString().slice(0, 10),
+          paid_by: ai?.paid_by_id || members[0]?.id,
+          currency: ai?.currency || group.base_currency,
+          amount: ai?.amount ? String(ai.amount) : '',
           isRefund: false,
           fx_rate: 1,
-          split_type: 'equal',
-          notes: '',
+          split_type: ai?.split_type || 'equal',
+          notes: ai?.notes || '',
         },
   )
   const [selected, setSelected] = useState(() => {
@@ -41,6 +45,16 @@ export default function ExpenseForm({ group, expense, onClose, onSaved }) {
           units: s.input_share_units ?? '',
           amount: s.input_amount_minor != null ? s.input_amount_minor / 100 : '',
         }
+      }
+    } else if (ai?.participants?.length) {
+      for (const p of ai.participants) {
+        if (p.member_id)
+          map[p.member_id] = {
+            on: true,
+            percent: p.percent ?? '',
+            units: p.units ?? '',
+            amount: p.amount ?? '',
+          }
       }
     } else {
       for (const m of members) {
@@ -107,7 +121,19 @@ export default function ExpenseForm({ group, expense, onClose, onSaved }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>{expense ? 'Edit expense' : 'Add expense'}</h3>
+        <h3>{expense ? 'Edit expense' : proposal ? 'Confirm the parsed expense' : 'Add expense'}</h3>
+        {proposal && (
+          <p className="ai-suggestion" style={{ marginTop: 0 }}>
+            <Sparkle size={13} />
+            <span>
+              Prefilled by {proposal.source === 'gemini' ? 'Gemini' : 'the offline parser'} —
+              check every field before saving.
+            </span>
+          </p>
+        )}
+        {proposal?.warnings?.map((w, i) => (
+          <div key={i} className="error-box" style={{ margin: '6px 0' }}>{w}</div>
+        ))}
         <form onSubmit={submit}>
           <div className="field">
             <label>Description</label>

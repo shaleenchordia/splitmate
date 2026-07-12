@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api } from '../api.js'
+import { Avatar, Plus, Trash } from './icons.jsx'
 
 // Membership windows are first-class: an expense dated outside someone's
 // window is flagged by the importer. Edit join/leave dates here, then
@@ -41,6 +42,17 @@ export default function MembersTab({ group, onChange }) {
     }
   }
 
+  const remove = async (member) => {
+    if (!window.confirm(`Remove ${member.name} from the group?`)) return
+    setError(null)
+    try {
+      await api(`/groups/${group.id}/members/${member.id}/`, { method: 'DELETE' })
+      onChange()
+    } catch (err) {
+      setError(err.body?.[0] || err.body?.detail || err.message)
+    }
+  }
+
   return (
     <>
       <div className="card">
@@ -57,12 +69,18 @@ export default function MembersTab({ group, onChange }) {
               <th>Joined</th>
               <th>Left</th>
               <th>Guest</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {group.members.map((m) => (
               <tr key={m.id}>
-                <td>{m.name}</td>
+                <td>
+                  <span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+                    <Avatar name={m.name} size={24} /> {m.name}
+                    {m.is_guest && <span className="badge neutral">guest</span>}
+                  </span>
+                </td>
                 <td>
                   <input
                     type="date"
@@ -92,6 +110,15 @@ export default function MembersTab({ group, onChange }) {
                     onChange={(e) => update(m, { is_guest: e.target.checked })}
                     style={{ width: 'auto' }}
                   />
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <button
+                    className="icon-btn danger"
+                    title="Remove member (only possible with no expense history)"
+                    onClick={() => remove(m)}
+                  >
+                    <Trash size={14} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -123,7 +150,7 @@ export default function MembersTab({ group, onChange }) {
             />
           </div>
           <div style={{ alignSelf: 'flex-end' }}>
-            <button className="primary" type="submit">Add</button>
+            <button className="primary" type="submit"><Plus size={15} /> Add</button>
           </div>
         </form>
       </div>
